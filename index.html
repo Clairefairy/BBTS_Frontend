@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBTS - Plataforma de Créditos de Carbono</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Tela de Login/Cadastro -->
+    <div id="login-page" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="bbts-logo">
+                    <span>BBTS</span>
+                </div>
+                <h1>Créditos de Carbono</h1>
+            </div>
+            
+            <div class="tab-container">
+                <div class="tab active" data-tab="login">Entrar</div>
+                <div class="tab" data-tab="register">Cadastrar</div>
+            </div>
+            
+            <div id="login-tab" class="tab-content active">
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label" for="login-email">E-mail</label>
+                        <input type="email" class="form-control" id="login-email" name="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="login-password">Senha</label>
+                        <input type="password" class="form-control" id="login-password" name="login-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                </form>
+                
+                <div class="wallet-connect" id="connect-wallet">
+                    <i class="fab fa-ethereum"></i> Conectar com MetaMask
+                </div>
+            </div>
+            
+            <div id="register-tab" class="tab-content">
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label" for="register-name">Nome Completo</label>
+                        <input type="text" class="form-control" id="register-name" name="register-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="register-email">E-mail</label>
+                        <input type="email" class="form-control" id="register-email" name="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="register-password">Senha</label>
+                        <input type="password" class="form-control" id="register-password" name="register-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="register-confirm-password">Confirmar Senha</label>
+                        <input type="password" class="form-control" id="register-confirm-password" name="register-confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Cadastrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div id="dashboard" class="container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="bbts-logo-small">
+                        <span>BBTS</span>
+                    </div>
+                </div>
+                <span class="platform-name">Créditos de Carbono</span>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" data-page="dashboard-page">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </div>
+                <div class="menu-item" data-page="monitoring-page">
+                    <i class="fas fa-chart-line"></i> Monitoramento
+                </div>
+                <div class="menu-item" data-page="registry-page">
+                    <i class="fas fa-database"></i> Registro Blockchain
+                </div>
+                <div class="menu-item" data-page="tokenization-page">
+                    <i class="fas fa-coins"></i> Tokenização
+                </div>
+                <div class="menu-item" data-page="compensation-page">
+                    <i class="fas fa-leaf"></i> Compensação
+                </div>
+                <div class="menu-item" data-page="notifications-page">
+                    <i class="fas fa-bell"></i> Notificações
+                </div>
+                <div class="menu-item" data-page="profile-page">
+                    <i class="fas fa-user-cog"></i> Configurações
+                </div>
+                <div class="menu-item" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Top Navigation -->
+            <div class="top-nav">
+                <h2 id="page-title">Dashboard</h2>
+                <div class="user-dropdown">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div id="user-name">Usuário</div>
+                            <div class="user-company">Empresa</div>
+                        </div>
+                        <i class="fas fa-chevron-down" style="margin-left: 10px; font-size: 0.8rem;"></i>
+                    </div>
+                    <div class="user-menu">
+                        <div class="user-menu-item" onclick="app.showPage('profile-page')">
+                            <i class="fas fa-user-cog"></i>
+                            Configurações
+                        </div>
+                        <div class="user-menu-item" onclick="app.logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sair
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo das Páginas -->
+            <div class="content">
+                <!-- Dashboard -->
+                <div id="dashboard-page" class="page-content active">
+                    <div class="page-title">
+                        <h1>Visão Geral</h1>
+                        <div>
+                            <button class="btn btn-secondary" onclick="dashboardManager.generateReport()">
+                                <i class="fas fa-download"></i> Gerar Relatório
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card stat-energy">
+                            <div class="stat-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-value">1.250</div>
+                            <div class="stat-label">Emissões de Energia (kg CO₂)</div>
+                            <div class="stat-subtitle">Este mês</div>
+                        </div>
+                        
+                        <div class="stat-card stat-fleet">
+                            <div class="stat-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="stat-value">2.180</div>
+                            <div class="stat-label">Emissões da Frota (kg CO₂)</div>
+                            <div class="stat-subtitle">Este mês</div>
+                        </div>
+                        
+                        <div class="stat-card stat-tokens">
+                            <div class="stat-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">Créditos Tokenizados</div>
+                            <div class="stat-subtitle">Disponíveis</div>
+                        </div>
+                        
+                        <div class="stat-card stat-compensated">
+                            <div class="stat-icon">
+                                <i class="fas fa-leaf"></i>
+                            </div>
+                            <div class="stat-value">850</div>
+                            <div class="stat-label">Emissões Compensadas (kg CO₂)</div>
+                            <div class="stat-subtitle">Total</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Dashboard...</h3>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-placeholder">
+                                Conteúdo sendo carregado...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monitoramento de Emissões -->
+                <div id="monitoring-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Monitoramento de Emissões</h1>
+                        <button class="btn btn-primary" onclick="monitoringManager.showManualEntryModal()">
+                            <i class="fas fa-plus"></i> Nova Entrada
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Monitoramento...</h3>
+                        </div>
+                        <p>Esta tela permite o monitoramento de emissões de energia e frota.</p>
+                    </div>
+                </div>
+
+                <!-- Registro na Blockchain -->
+                <div id="registry-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Registro na Blockchain</h1>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Registros...</h3>
+                        </div>
+                        <p>Esta tela exibe os registros imutáveis na blockchain.</p>
+                    </div>
+                </div>
+
+                <!-- Tokenização de Créditos -->
+                <div id="tokenization-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Tokenização de Créditos</h1>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Tokenização...</h3>
+                        </div>
+                        <p>Esta tela gerencia a tokenização de créditos de carbono.</p>
+                    </div>
+                </div>
+
+                <!-- Compensação de Emissões -->
+                <div id="compensation-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Compensação de Emissões</h1>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Compensação...</h3>
+                        </div>
+                        <p>Esta tela gerencia a compensação de emissões.</p>
+                    </div>
+                </div>
+
+                <!-- Notificações e Alertas -->
+                <div id="notifications-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Notificações e Alertas</h1>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Notificações...</h3>
+                        </div>
+                        <p>Esta tela exibe notificações e alertas do sistema.</p>
+                    </div>
+                </div>
+
+                <!-- Configurações do Perfil -->
+                <div id="profile-page" class="page-content">
+                    <div class="page-title">
+                        <h1>Configurações do Perfil</h1>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Carregando Configurações...</h3>
+                        </div>
+                        <p>Esta tela permite configurar o perfil do usuário.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/monitoring.js"></script>
+    <script src="js/blockchain.js"></script>
+    <script src="js/tokenization.js"></script>
+    <script src="js/compensation.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/init.js"></script>
+</body>
+</html>
