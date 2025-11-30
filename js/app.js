@@ -498,12 +498,12 @@ class BBTSCarbonApp {
         // Se temos ID, tentar buscar da API
         if (userId) {
             try {
-                const response = await this.apiCall(`/api/usuario/${userId}`, {
-                    method: 'GET'
-                });
+            const response = await this.apiCall(`/api/usuario/${userId}`, {
+                method: 'GET'
+            });
 
-                if (response.ok) {
-                    userData = await response.json();
+            if (response.ok) {
+                userData = await response.json();
                     loadedFromApi = true;
                     console.log('Dados carregados da API:', userData);
                 }
@@ -523,10 +523,10 @@ class BBTSCarbonApp {
         const userEmail = userData?.email || this.currentUser?.email || '';
 
         // Renderizar página com dados do usuário
-        pageElement.innerHTML = `
-            <div class="page-title">
-                <h1>Configurações do Perfil</h1>
-            </div>
+            pageElement.innerHTML = `
+                <div class="page-title">
+                    <h1>Configurações do Perfil</h1>
+                </div>
             
             ${!userId ? `
             <div class="card" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-bottom: 20px;">
@@ -536,31 +536,31 @@ class BBTSCarbonApp {
                 </p>
             </div>
             ` : ''}
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Informações da Conta</h3>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Informações da Conta</h3>
                     ${loadedFromApi ? '<span style="color: var(--bb-green); font-size: 0.8rem;"><i class="fas fa-check"></i> Dados da API</span>' : ''}
-                </div>
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label class="form-label" for="profile-name">Nome</label>
+                    </div>
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label class="form-label" for="profile-name">Nome</label>
                         <input type="text" class="form-control" id="profile-name" value="${userName}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="profile-email">E-mail</label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-email">E-mail</label>
                         <input type="email" class="form-control" id="profile-email" value="${userEmail}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="profile-wallet">Carteira Blockchain</label>
-                        <input type="text" class="form-control" id="profile-wallet" value="${this.currentUser?.walletAddress || 'Não conectada'}" readonly>
-                        <button type="button" class="btn btn-secondary mt-1" onclick="app.connectWallet()">
-                            <i class="fab fa-ethereum"></i> Conectar Carteira
-                        </button>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-                </form>
-            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-wallet">Carteira Blockchain</label>
+                            <input type="text" class="form-control" id="profile-wallet" value="${this.currentUser?.walletAddress || 'Não conectada'}" readonly>
+                            <button type="button" class="btn btn-secondary mt-1" onclick="app.connectWallet()">
+                                <i class="fab fa-ethereum"></i> Conectar Carteira
+                            </button>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                    </form>
+                </div>
             
             <div class="card">
                 <div class="card-header">
@@ -575,41 +575,41 @@ class BBTSCarbonApp {
                     </button>
                 </div>
             </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Preferências de Notificação</h3>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Preferências de Notificação</h3>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notif-emissions" checked>
+                            <label for="notif-emissions">Alertas de emissões acima do limite</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notif-opportunities" checked>
+                            <label for="notif-opportunities">Oportunidades de compensação</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="notif-blockchain" checked>
+                            <label for="notif-blockchain">Confirmações de transações blockchain</label>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="notif-emissions" checked>
-                        <label for="notif-emissions">Alertas de emissões acima do limite</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="notif-opportunities" checked>
-                        <label for="notif-opportunities">Oportunidades de compensação</label>
-                    </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="notif-blockchain" checked>
-                        <label for="notif-blockchain">Confirmações de transações blockchain</label>
-                    </div>
-                </div>
-            </div>
-        `;
+            `;
 
-        // Atualizar dados do usuário atual com os dados da API
+            // Atualizar dados do usuário atual com os dados da API
         if (loadedFromApi && userData) {
-            this.currentUser = {
+                this.currentUser = {
                 id: userData.id || userData._id || userId,
-                name: userData.nome || userData.name,
-                email: userData.email,
-                company: this.currentUser?.company || userData.empresa || '',
-                walletAddress: this.currentUser?.walletAddress || userData.walletAddress || ''
-            };
-            localStorage.setItem('bbts_user', JSON.stringify(this.currentUser));
-        }
+                    name: userData.nome || userData.name,
+                    email: userData.email,
+                    company: this.currentUser?.company || userData.empresa || '',
+                    walletAddress: this.currentUser?.walletAddress || userData.walletAddress || ''
+                };
+                localStorage.setItem('bbts_user', JSON.stringify(this.currentUser));
+            }
 
-        document.getElementById('profile-form')?.addEventListener('submit', (e) => this.updateProfile(e));
+            document.getElementById('profile-form')?.addEventListener('submit', (e) => this.updateProfile(e));
     }
 
     async updateProfile(e) {
@@ -763,8 +763,8 @@ class BBTSCarbonApp {
                                 color: #666666;
                                 cursor: pointer;
                             "><i class="fas fa-eye"></i></button>
-                        </div>
                     </div>
+                        </div>
                     
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label class="form-label" for="new-password">Nova Senha</label>
@@ -785,7 +785,7 @@ class BBTSCarbonApp {
                         <small style="color: #666666; font-size: 0.8rem;">
                             Mínimo de 6 caracteres
                         </small>
-                    </div>
+                        </div>
                     
                     <div class="form-group" style="margin-bottom: 25px;">
                         <label class="form-label" for="confirm-new-password">Confirmar Nova Senha</label>
@@ -803,8 +803,8 @@ class BBTSCarbonApp {
                                 cursor: pointer;
                             "><i class="fas fa-eye"></i></button>
                         </div>
-                    </div>
-                    
+                </div>
+                
                     <div id="password-error" style="
                         display: none;
                         background: rgba(220, 53, 69, 0.1);
@@ -826,10 +826,10 @@ class BBTSCarbonApp {
                         <button type="submit" class="btn btn-primary" id="change-password-btn">
                             <i class="fas fa-key"></i> Alterar Senha
                         </button>
-                    </div>
+                        </div>
                 </form>
-            </div>
-        `;
+                </div>
+            `;
 
         document.body.appendChild(modal);
 

@@ -1,42 +1,15 @@
 // Dashboard functionality
 class DashboardManager {
     constructor() {
+        this.apiBaseUrl = 'https://back-end-blockchain.onrender.com';
+        this.fontesMap = {};
         this.statsData = {
             energyEmissions: 1250,
             fleetEmissions: 2180,
             availableTokens: 15,
             compensatedEmissions: 850,
             monthlyTrend: [1200, 1350, 1100, 1250, 1400, 1300],
-            recentActivities: [
-                {
-                    date: '2023-06-15',
-                    type: 'Registro',
-                    description: 'Emissões de energia - Junho',
-                    value: '1,250 kg CO₂',
-                    status: 'success'
-                },
-                {
-                    date: '2023-06-10',
-                    type: 'Tokenização',
-                    description: 'Créditos por energia solar',
-                    value: '5 tokens',
-                    status: 'success'
-                },
-                {
-                    date: '2023-06-05',
-                    type: 'Compensação',
-                    description: 'Compra de créditos de reflorestamento',
-                    value: '850 kg CO₂',
-                    status: 'success'
-                },
-                {
-                    date: '2023-06-01',
-                    type: 'Monitoramento',
-                    description: 'Emissões da frota - Maio',
-                    value: '2,180 kg CO₂',
-                    status: 'warning'
-                }
-            ]
+            recentActivities: []
         };
         
         // Carrega imediatamente se já estiver na página
@@ -45,13 +18,241 @@ class DashboardManager {
         }
     }
 
-    loadDashboard() {
+    getCurrentUserId() {
+        const userData = localStorage.getItem('bbts_user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.id || user._id || user.idUsuario || user.userId;
+        }
+        return null;
+    }
+
+    async apiCall(endpoint, options = {}) {
+        const url = `${this.apiBaseUrl}${endpoint}`;
+        const token = localStorage.getItem('bbts_token');
+        
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        if (token) {
+            defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const finalOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...(options.headers || {})
+            }
+        };
+
+        return fetch(url, finalOptions);
+    }
+
+    async loadDashboard() {
         const dashboardElement = document.getElementById('dashboard-page');
         if (dashboardElement) {
+            // Mostrar loading
+            dashboardElement.innerHTML = `
+                <div class="page-title">
+                    <h1>Visão Geral</h1>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Carregando...</h3>
+                    </div>
+                    <p><i class="fas fa-spinner fa-spin"></i> Buscando dados...</p>
+                </div>
+            `;
+
+            // Carregar todos os dados da API
+            await this.loadAllDashboardData();
+
             dashboardElement.innerHTML = this.generateDashboardHTML();
             this.renderCharts();
             this.setupEventListeners();
         }
+    }
+
+    async loadAllDashboardData() {
+        try {
+            const userId = this.getCurrentUserId();
+            if (!userId) {
+                console.log('Usuário não logado');
+                return;
+            }
+
+            // Buscar todos os dados necessários em paralelo
+            const [transacaoResponse, emissaoResponse, fonteResponse, usuarioResponse] = await Promise.all([
+                this.apiCall('/api/transacao', { method: 'GET' }),
+                this.apiCall('/api/emissao', { method: 'GET' }),
+                this.apiCall('/api/fonteEmissao', { method: 'GET' }),
+                this.apiCall(`/api/usuario/${userId}`, { method: 'GET' })
+            ]);
+
+            if (!transacaoResponse.ok || !emissaoResponse.ok || !fonteResponse.ok) {
+                console.error('Erro ao buscar dados das APIs');
+                return;
+            }
+
+            const transacoes = await transacaoResponse.json();
+            const emissoes = await emissaoResponse.json();
+            const fontes = await fonteResponse.json();
+            const usuario = usuarioResponse.ok ? await usuarioResponse.json() : {};
+
+            // Criar mapa de fontes para acesso rápido
+            this.fontesMap = {};
+            fontes.forEach(fonte => {
+                const id = fonte.id || fonte._id;
+                this.fontesMap[id] = fonte;
+            });
+
+            // Filtrar dados do usuário
+            const userTransacoes = transacoes.filter(t => t.idUsuarioFK === userId);
+            const userEmissoes = emissoes.filter(e => e.idUsuarioFK === userId);
+
+            // Calcular estatísticas
+            this.calculateStats(userEmissoes, userTransacoes, usuario);
+
+            // Calcular tendência de emissões
+            this.calculateEmissionsTrend(userEmissoes);
+
+            // Carregar atividades recentes
+            this.loadActivitiesFromData(userTransacoes, userEmissoes);
+
+            console.log('Dados do dashboard carregados:', this.statsData);
+        } catch (error) {
+            console.error('Erro ao carregar dados do dashboard:', error);
+        }
+    }
+
+    calculateStats(emissoes, transacoes, usuario) {
+        // Emissões de Energia (tipoFonte = "Energia")
+        let energyEmissions = 0;
+        let fleetEmissions = 0;
+
+        emissoes.forEach(e => {
+            const fonte = this.fontesMap[e.idFonteFk];
+            if (fonte) {
+                const tipoFonte = (fonte.tipoFonte || '').toLowerCase();
+                const co2 = e.quantidadeCo2 || 0;
+
+                if (tipoFonte === 'energia') {
+                    energyEmissions += co2;
+                } else if (tipoFonte === 'frota de veículos') {
+                    fleetEmissions += co2;
+                }
+            }
+        });
+
+        // Tokens disponíveis (saldoCompra do usuário)
+        const availableTokens = usuario.saldoCompra || 0;
+
+        // CO₂ Compensado (soma de quantidadeutilizada das transações de compensação)
+        let compensatedEmissions = 0;
+        transacoes.forEach(t => {
+            if (t.tipotransacao === 'compensacao') {
+                compensatedEmissions += t.quantidadeutilizada || 0;
+            }
+        });
+
+        // Atualizar statsData
+        this.statsData.energyEmissions = energyEmissions;
+        this.statsData.fleetEmissions = fleetEmissions;
+        this.statsData.availableTokens = availableTokens;
+        this.statsData.compensatedEmissions = compensatedEmissions;
+    }
+
+    calculateEmissionsTrend(emissoes) {
+        // Agrupar emissões por mês (últimos 6 meses)
+        const now = new Date();
+        const monthlyData = {};
+
+        // Inicializar os últimos 6 meses com 0
+        for (let i = 5; i >= 0; i--) {
+            const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            monthlyData[key] = 0;
+        }
+
+        // Somar emissões por mês
+        emissoes.forEach(e => {
+            if (e.dataRegistro) {
+                const date = new Date(e.dataRegistro);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (monthlyData.hasOwnProperty(key)) {
+                    monthlyData[key] += e.quantidadeCo2 || 0;
+                }
+            }
+        });
+
+        // Converter para array ordenado
+        const sortedKeys = Object.keys(monthlyData).sort();
+        this.statsData.monthlyTrend = sortedKeys.map(key => monthlyData[key]);
+        this.statsData.monthlyLabels = sortedKeys.map(key => {
+            const [year, month] = key.split('-');
+            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return monthNames[parseInt(month) - 1];
+        });
+
+        console.log('Tendência de emissões:', this.statsData.monthlyTrend, this.statsData.monthlyLabels);
+    }
+
+    loadActivitiesFromData(transacoes, emissoes) {
+        const atividades = [];
+
+        // Processar transações (Tokenização e Compensação)
+        transacoes.forEach(t => {
+            const tipo = t.tipotransacao || '';
+            let tipoExibicao = '';
+            let descricao = '';
+
+            if (tipo === 'compra') {
+                tipoExibicao = 'Tokenização';
+                descricao = 'Compra de Tokens de Projeto';
+            } else if (tipo === 'venda') {
+                tipoExibicao = 'Tokenização';
+                descricao = 'Emissão de Tokens';
+            } else if (tipo === 'compensacao') {
+                tipoExibicao = 'Compensação';
+                descricao = 'Compensação de Carbono';
+            } else {
+                return;
+            }
+
+            atividades.push({
+                date: t.datacompensacao || new Date().toISOString(),
+                type: tipoExibicao,
+                description: descricao,
+                value: `${this.formatNumber(t.quantidadeutilizada || 0)} kg CO₂`,
+                status: 'success'
+            });
+        });
+
+        // Processar emissões
+        emissoes.forEach(e => {
+            const fonte = this.fontesMap[e.idFonteFk];
+            const tipoFonte = fonte ? fonte.tipoFonte : 'Desconhecido';
+
+            atividades.push({
+                date: e.dataRegistro || new Date().toISOString(),
+                type: 'Emissão',
+                description: `Registro de Emissão de ${tipoFonte}`,
+                value: `${this.formatNumber(e.quantidadeCo2 || 0)} kg CO₂`,
+                status: 'success'
+            });
+        });
+
+        // Ordenar por data (mais recentes primeiro)
+        atividades.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        // Pegar apenas as últimas 4
+        this.statsData.recentActivities = atividades.slice(0, 4);
     }
 
     generateDashboardHTML() {
@@ -175,39 +376,74 @@ class DashboardManager {
     }
 
     generateActivitiesHTML() {
-        return this.statsData.recentActivities.map(activity => `
-            <tr>
-                <td>${this.formatDate(activity.date)}</td>
-                <td>${activity.type}</td>
-                <td>${activity.description}</td>
-                <td>${activity.value}</td>
-                <td>
-                    <span class="badge badge-${activity.status}">
-                        ${activity.status === 'success' ? 'Concluído' : 
-                          activity.status === 'warning' ? 'Pendente' : 'Erro'}
-                    </span>
-                </td>
-            </tr>
-        `).join('');
+        if (this.statsData.recentActivities.length === 0) {
+            return `
+                <tr>
+                    <td colspan="5" class="text-center">
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>Nenhuma atividade recente</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        return this.statsData.recentActivities.map(activity => {
+            // Definir badge de acordo com o tipo
+            let badgeClass = 'badge-secondary';
+            if (activity.type === 'Tokenização') {
+                badgeClass = 'badge-info';
+            } else if (activity.type === 'Compensação') {
+                badgeClass = 'badge-success';
+            } else if (activity.type === 'Emissão') {
+                badgeClass = 'badge-warning';
+            }
+
+            return `
+                <tr>
+                    <td>${this.formatDate(activity.date)}</td>
+                    <td><span class="badge ${badgeClass}">${activity.type}</span></td>
+                    <td>${activity.description}</td>
+                    <td>${activity.value}</td>
+                    <td>
+                        <span class="badge badge-success">Concluído</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     renderCharts() {
-        // This would integrate with a charting library like Chart.js
-        // For now, we'll just display a placeholder
         const chartElement = document.getElementById('emissions-chart');
         if (chartElement) {
-            // Simulate chart data
-            const data = this.statsData.monthlyTrend;
+            const data = this.statsData.monthlyTrend || [];
+            const labels = this.statsData.monthlyLabels || [];
+            
+            // Encontrar o valor máximo para escalar as barras
+            const maxValue = Math.max(...data, 1);
+
+            if (data.length === 0 || data.every(v => v === 0)) {
+                chartElement.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-chart-bar" style="font-size: 3rem; margin-bottom: 15px; color: #ccc;"></i>
+                        <p>Nenhum dado de emissão nos últimos 6 meses</p>
+                    </div>
+                `;
+                return;
+            }
+
             chartElement.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <div style="font-size: 1.2rem; margin-bottom: 20px; color: var(--bb-blue);">
-                        Tendência de Emissões (kg CO₂)
+                        Tendência de Emissões (kg CO₂) - Últimos 6 meses
                     </div>
-                    <div style="display: flex; align-items: end; justify-content: center; height: 200px; gap: 10px;">
+                    <div style="display: flex; align-items: end; justify-content: center; height: 200px; gap: 15px;">
                         ${data.map((value, index) => `
                             <div style="display: flex; flex-direction: column; align-items: center;">
-                                <div style="background: var(--bb-blue); width: 30px; height: ${(value / 1500) * 180}px; border-radius: 4px 4px 0 0;"></div>
-                                <div style="margin-top: 5px; font-size: 0.8rem;">Mês ${index + 1}</div>
+                                <div style="font-size: 0.75rem; margin-bottom: 5px; color: #666;">${this.formatNumber(value)}</div>
+                                <div style="background: linear-gradient(180deg, var(--bb-blue) 0%, var(--bb-dark-blue) 100%); width: 40px; height: ${Math.max((value / maxValue) * 150, 5)}px; border-radius: 4px 4px 0 0;"></div>
+                                <div style="margin-top: 8px; font-size: 0.85rem; font-weight: 500;">${labels[index] || `Mês ${index + 1}`}</div>
                             </div>
                         `).join('')}
                     </div>

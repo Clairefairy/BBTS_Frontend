@@ -161,9 +161,9 @@ class MonitoringManager {
                         <i class="fas fa-list"></i> Fontes de Energia
                     </button>
                     -->
-                    <button class="btn btn-primary" onclick="monitoringManager.showManualEntryModal()">
-                        <i class="fas fa-plus"></i> Nova Entrada
-                    </button>
+                <button class="btn btn-primary" onclick="monitoringManager.showManualEntryModal()">
+                    <i class="fas fa-plus"></i> Nova Entrada
+                </button>
                 </div>
             </div>
 
@@ -316,7 +316,7 @@ class MonitoringManager {
                                 </select>
                             </div>
                             
-                            <div id="energy-fields">
+                            <div id="energy-fields" style="display: none;">
                                 <div class="form-group">
                                     <label class="form-label" for="energy-consumption">Consumo de Energia (kWh)</label>
                                     <input type="number" class="form-control" id="energy-consumption" step="0.01" min="0">
@@ -346,27 +346,29 @@ class MonitoringManager {
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label class="form-label" for="emission-date">Data da Emissão</label>
-                                <input type="date" class="form-control" id="emission-date" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="collection-method">Método de Coleta de Dados</label>
-                                <select class="form-control" id="collection-method" required>
-                                    <option value="manual">Manual</option>
-                                    <option value="API">API</option>
-                                    <option value="Iot">Dispositivo IoT</option>
-                                </select>
-                            </div>
-                            
-                            <div id="calculation-result" style="display: none; padding: 15px; background: #f0f8ff; border-radius: 6px; margin-bottom: 15px;">
-                                <h4>Resultado do Cálculo</h4>
-                                <p>Emissões calculadas: <strong id="calculated-emissions">0</strong> kg CO₂</p>
+                            <div id="common-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label" for="emission-date">Data da Emissão</label>
+                                    <input type="date" class="form-control" id="emission-date" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="collection-method">Método de Coleta de Dados</label>
+                                    <select class="form-control" id="collection-method" required>
+                                        <option value="manual">Manual</option>
+                                        <option value="API">API</option>
+                                        <option value="Iot">Dispositivo IoT</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="calculation-result" style="display: none; padding: 15px; background: #f0f8ff; border-radius: 6px; margin-bottom: 15px;">
+                                    <h4>Resultado do Cálculo</h4>
+                                    <p>Emissões calculadas: <strong id="calculated-emissions">0</strong> kg CO₂</p>
+                                </div>
                             </div>
                         </form>
                     </div>
-                    <div class="modal-footer">
+                    <div id="modal-footer-buttons" class="modal-footer" style="display: none;">
                         <button type="button" class="btn btn-secondary" onclick="monitoringManager.calculateEmissions()">
                             Calcular Emissões
                         </button>
@@ -380,7 +382,14 @@ class MonitoringManager {
     }
 
     generateEnergyHistoryHTML() {
-        if (this.emissionData.energy.length === 0) {
+        // Filtrar emissões com consumo > 1.00 kWh
+        const filteredEnergy = this.emissionData.energy.filter(entry => {
+            const factor = this.getEnergyFactor(entry.type);
+            const calculatedConsumption = entry.emissions / factor;
+            return calculatedConsumption > 1.00;
+        });
+
+        if (filteredEnergy.length === 0) {
             return `
                 <tr>
                     <td colspan="7" class="text-center">
@@ -396,34 +405,40 @@ class MonitoringManager {
             `;
         }
 
-        return this.emissionData.energy.map(entry => `
-            <tr>
-                <td>${this.formatDate(entry.date)}</td>
-                <td>${entry.type}</td>
-                <td>${this.formatNumber(entry.consumption)}</td>
-                <td>${this.formatNumber(entry.emissions)}</td>
-                <td>${this.getEnergyFactor(entry.type)} kg CO₂/kWh</td>
-                <td>
-                    <span class="badge badge-${entry.status === 'registered' ? 'success' : 'warning'}">
-                        ${entry.status === 'registered' ? 'Registrado' : 'Pendente'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-secondary btn-sm" onclick="monitoringManager.editEntry('energy', '${entry.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    ${entry.status !== 'registered' ? `
-                        <button class="btn btn-success btn-sm" onclick="monitoringManager.registerEntry('energy', '${entry.id}')">
-                            <i class="fas fa-database"></i>
+        return filteredEnergy.map(entry => {
+            const factor = this.getEnergyFactor(entry.type);
+            // Calcular consumo a partir das emissões: consumo = emissões / fator
+            const calculatedConsumption = entry.emissions / factor;
+            
+            return `
+                <tr>
+                    <td>${this.formatDate(entry.date)}</td>
+                    <td>${entry.type}</td>
+                    <td>${this.formatNumber(calculatedConsumption)}</td>
+                    <td>${this.formatNumber(entry.emissions)}</td>
+                    <td>${factor} kg CO₂/kWh</td>
+                    <td>
+                        <span class="badge badge-${entry.status === 'registered' ? 'success' : 'warning'}">
+                            ${entry.status === 'registered' ? 'Registrado' : 'Pendente'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="monitoringManager.editEntry('energy', '${entry.id}')">
+                            <i class="fas fa-edit"></i>
                         </button>
-                    ` : ''}
-                </td>
-            </tr>
-        `).join('');
+                        ${entry.status !== 'registered' ? `
+                            <button class="btn btn-success btn-sm" onclick="monitoringManager.registerEntry('energy', '${entry.id}')">
+                                <i class="fas fa-database"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     getEnergyFactor(type) {
-        const typeText = type.toLowerCase();
+        const typeText = (type || '').toLowerCase();
         if (typeText.includes('solar')) return 0.05;
         if (typeText.includes('eólica') || typeText.includes('eolica')) return 0.01;
         if (typeText.includes('hidrelétrica') || typeText.includes('hidreletrica')) return 0.02;
@@ -447,30 +462,44 @@ class MonitoringManager {
             `;
         }
 
-        return this.emissionData.fleet.map(entry => `
-            <tr>
-                <td>${this.formatDate(entry.date)}</td>
-                <td>${entry.type}</td>
-                <td>${this.formatNumber(entry.consumption)}</td>
-                <td>-</td>
-                <td>${this.formatNumber(entry.emissions)}</td>
-                <td>
-                    <span class="badge badge-${entry.status === 'registered' ? 'success' : 'warning'}">
-                        ${entry.status === 'registered' ? 'Registrado' : 'Pendente'}
-                    </span>
-                </td>
-                <td>
-                    <button class="btn btn-secondary btn-sm" onclick="monitoringManager.editEntry('fleet', '${entry.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    ${entry.status !== 'registered' ? `
-                        <button class="btn btn-success btn-sm" onclick="monitoringManager.registerEntry('fleet', '${entry.id}')">
-                            <i class="fas fa-database"></i>
+        return this.emissionData.fleet.map(entry => {
+            const factor = this.getFleetFactor(entry.type);
+            // Calcular consumo a partir das emissões: consumo = emissões / fator
+            const calculatedConsumption = entry.emissions / factor;
+            
+            return `
+                <tr>
+                    <td>${this.formatDate(entry.date)}</td>
+                    <td>${entry.type}</td>
+                    <td>${this.formatNumber(calculatedConsumption)}</td>
+                    <td>-</td>
+                    <td>${this.formatNumber(entry.emissions)}</td>
+                    <td>
+                        <span class="badge badge-${entry.status === 'registered' ? 'success' : 'warning'}">
+                            ${entry.status === 'registered' ? 'Registrado' : 'Pendente'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary btn-sm" onclick="monitoringManager.editEntry('fleet', '${entry.id}')">
+                            <i class="fas fa-edit"></i>
                         </button>
-                    ` : ''}
-                </td>
-            </tr>
-        `).join('');
+                        ${entry.status !== 'registered' ? `
+                            <button class="btn btn-success btn-sm" onclick="monitoringManager.registerEntry('fleet', '${entry.id}')">
+                                <i class="fas fa-database"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    getFleetFactor(type) {
+        const typeText = (type || '').toLowerCase();
+        if (typeText.includes('gasolina')) return 2.31;
+        if (typeText.includes('etanol')) return 1.51;
+        if (typeText.includes('gnv')) return 2.75;
+        return 2.68; // Padrão: Diesel
     }
 
     getEnergySourceName(type) {
@@ -943,19 +972,29 @@ class MonitoringManager {
     // ========== FIM FONTES DE ENERGIA ==========
 
     toggleEmissionFields(type) {
+        const commonFields = document.getElementById('common-fields');
+        const footerButtons = document.getElementById('modal-footer-buttons');
+        
         if (type === 'energy') {
             document.getElementById('energy-fields').style.display = 'block';
             document.getElementById('fleet-fields').style.display = 'none';
+            commonFields.style.display = 'block';
+            footerButtons.style.display = 'flex';
             // Carregar fontes de energia da API
             this.loadEnergySourcesDropdown();
         } else if (type === 'fleet') {
             document.getElementById('energy-fields').style.display = 'none';
             document.getElementById('fleet-fields').style.display = 'block';
+            commonFields.style.display = 'block';
+            footerButtons.style.display = 'flex';
             // Carregar tipos de combustível da API
             this.loadFuelTypesDropdown();
         } else {
+            // Nenhum tipo selecionado - ocultar tudo
             document.getElementById('energy-fields').style.display = 'none';
             document.getElementById('fleet-fields').style.display = 'none';
+            commonFields.style.display = 'none';
+            footerButtons.style.display = 'none';
         }
         this.calculateEmissions();
     }
@@ -1207,12 +1246,12 @@ class MonitoringManager {
                     responseData = JSON.parse(responseText);
                 } catch (e) {
                     console.log('Resposta não é JSON:', responseText);
-                }
+            }
 
                 if (response.ok) {
-                    this.hideManualEntryModal();
+            this.hideManualEntryModal();
                     window.app.showNotification('Emissão de frota registrada com sucesso!', 'success');
-                    
+            
                     // Recarregar a página para mostrar os novos dados
                     await this.loadMonitoringPage();
                 } else {

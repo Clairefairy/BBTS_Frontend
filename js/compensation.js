@@ -1,104 +1,236 @@
 // Compensation functionality
 class CompensationManager {
     constructor() {
+        this.apiBaseUrl = 'https://back-end-blockchain.onrender.com';
+        this.userEmissions = [];
+        this.fontesMap = {};
+        this.projectsMap = {};
         this.compensationData = {
-            history: [
-                {
-                    id: 1,
-                    date: '2023-06-05',
-                    project: 'Reflorestamento Amazônia',
-                    type: 'reforestation',
-                    tokens: 3,
-                    emissions: 850,
-                    status: 'completed',
-                    certificate: 'CER-2023-001',
-                    cost: 98.25,
-                    impact: '30 árvores plantadas'
-                },
-                {
-                    id: 2,
-                    date: '2023-04-12',
-                    project: 'Fazenda Solar Nordeste',
-                    type: 'solar',
-                    tokens: 2,
-                    emissions: 500,
-                    status: 'completed',
-                    certificate: 'CER-2023-002',
-                    cost: 91.00,
-                    impact: '500 kWh de energia limpa'
-                },
-                {
-                    id: 3,
-                    date: '2023-02-20',
-                    project: 'Parque Eólico Sul',
-                    type: 'wind',
-                    tokens: 5,
-                    emissions: 1250,
-                    status: 'completed',
-                    certificate: 'CER-2023-003',
-                    cost: 191.00,
-                    impact: '1250 kWh de energia eólica'
-                }
-            ],
-            availableProjects: [
-                {
-                    id: 1,
-                    name: 'Projeto Reflorestamento Amazônia',
-                    type: 'reforestation',
-                    description: 'Recuperação de áreas degradadas na Amazônia com espécies nativas',
-                    costPerToken: 32.75,
-                    availableTokens: 450,
-                    impact: '1000 kg CO₂ por token | 10 árvores plantadas',
-                    verified: true,
-                    location: 'Amazonas, Brasil',
-                    developer: 'Fundação Amazônia Sustentável'
-                },
-                {
-                    id: 2,
-                    name: 'Parque Eólico Nordeste',
-                    type: 'wind',
-                    description: 'Geração de energia limpa no Nordeste brasileiro',
-                    costPerToken: 38.20,
-                    availableTokens: 300,
-                    impact: '1000 kg CO₂ por token | 250 kWh de energia limpa',
-                    verified: true,
-                    location: 'Rio Grande do Norte, Brasil',
-                    developer: 'Eólica Brasil Energia'
-                },
-                {
-                    id: 3,
-                    name: 'Programa de Eficiência Energética',
-                    type: 'efficiency',
-                    description: 'Modernização de sistemas energéticos industriais',
-                    costPerToken: 28.50,
-                    availableTokens: 200,
-                    impact: '800 kg CO₂ por token | 15% de eficiência',
-                    verified: false,
-                    location: 'São Paulo, Brasil',
-                    developer: 'Instituto de Energia Sustentável'
-                },
-                {
-                    id: 4,
-                    name: 'Fazenda Solar Centro-Oeste',
-                    type: 'solar',
-                    description: 'Geração de energia solar fotovoltaica',
-                    costPerToken: 45.50,
-                    availableTokens: 600,
-                    impact: '1000 kg CO₂ por token | 500 kWh de energia solar',
-                    verified: true,
-                    location: 'Goiás, Brasil',
-                    developer: 'Solar Energy Brasil'
-                }
-            ]
+            history: [],
+            availableProjects: []
         };
+        this.TOKEN_PRICE = 45.50; // Preço por token
     }
 
-    loadCompensationPage() {
+    getCurrentUserId() {
+        const userData = localStorage.getItem('bbts_user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.id || user._id || user.idUsuario || user.userId;
+        }
+        return null;
+    }
+
+    async loadCompensationPage() {
         const pageElement = document.getElementById('compensation-page');
         if (pageElement) {
+            // Mostrar loading
+            pageElement.innerHTML = `
+                <div class="page-title">
+                    <h1>Compensação de Emissões</h1>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Carregando...</h3>
+                    </div>
+                    <p><i class="fas fa-spinner fa-spin"></i> Buscando dados...</p>
+                </div>
+            `;
+
+            // Carregar dados da API em paralelo
+            await Promise.all([
+                this.loadProjectsFromAPI(),
+                this.loadUserEmissions(),
+                this.loadFontes(),
+                this.loadTransactionHistory()
+            ]);
+
             pageElement.innerHTML = this.generateCompensationHTML();
             this.setupEventListeners();
         }
+    }
+
+    async loadUserEmissions() {
+        try {
+            const userId = this.getCurrentUserId();
+            if (!userId) return;
+
+            const response = await this.apiCall('/api/emissao', { method: 'GET' });
+            
+            if (response.ok) {
+                const emissoes = await response.json();
+                // Filtrar apenas emissões do usuário atual
+                this.userEmissions = emissoes.filter(e => e.idUsuarioFK === userId);
+                console.log('Emissões do usuário carregadas:', this.userEmissions);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar emissões:', error);
+        }
+    }
+
+    async loadFontes() {
+        try {
+            const response = await this.apiCall('/api/fonteEmissao', { method: 'GET' });
+            
+            if (response.ok) {
+                const fontes = await response.json();
+                // Criar mapa de fontes por id
+                this.fontesMap = {};
+                fontes.forEach(fonte => {
+                    const fonteId = fonte.id || fonte._id;
+                    this.fontesMap[fonteId] = fonte;
+                });
+                console.log('Fontes carregadas:', this.fontesMap);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar fontes:', error);
+        }
+    }
+
+    getEmissionLabel(emissao) {
+        const fonte = this.fontesMap[emissao.idFonteFk];
+        const tipoFonte = fonte ? fonte.descricao : 'Desconhecido';
+        const data = new Date(emissao.dataRegistro).toLocaleDateString('pt-BR');
+        const co2 = emissao.quantidadeCo2 || 0;
+        return `${this.formatNumber(co2)} kg CO₂ de ${tipoFonte} em ${data}`;
+    }
+
+    async loadTransactionHistory() {
+        try {
+            const userId = this.getCurrentUserId();
+            if (!userId) return;
+
+            const response = await this.apiCall('/api/transacao', { method: 'GET' });
+            
+            if (response.ok) {
+                const transacoes = await response.json();
+                console.log('Transações carregadas:', transacoes);
+                
+                // Filtrar apenas transações do usuário atual e do tipo compensacao
+                const userTransactions = transacoes.filter(t => 
+                    t.idUsuarioFK === userId && t.tipotransacao === 'compensacao'
+                );
+                
+                // Criar mapa de projetos para referência rápida
+                await this.buildProjectsMap();
+                
+                // Mapear transações para o formato do histórico
+                this.compensationData.history = userTransactions.map((t, index) => {
+                    const projeto = this.projectsMap[t.idProjetoFK] || {};
+                    const co2 = t.quantidadeutilizada || 0;
+                    const tokensUsed = Math.ceil(co2 / 1000); // 1 token = 1000 kg CO₂
+                    const investimento = tokensUsed * this.TOKEN_PRICE;
+                    
+                    return {
+                        id: t.id || t._id,
+                        date: t.datacompensacao || new Date().toISOString(),
+                        project: projeto.nome || 'Projeto',
+                        type: projeto.tipo || 'desconhecido',
+                        tokens: tokensUsed,
+                        emissions: co2,
+                        status: 'completed',
+                        certificate: `CER-${new Date(t.datacompensacao).getFullYear()}-${String(index + 1).padStart(3, '0')}`,
+                        cost: investimento,
+                        impact: this.generateImpactDescription(projeto.tipo, tokensUsed)
+                    };
+                });
+                
+                console.log('Histórico de compensação:', this.compensationData.history);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar histórico de transações:', error);
+        }
+    }
+
+    async buildProjectsMap() {
+        // Se já temos os projetos carregados, usar eles
+        if (this.compensationData.availableProjects.length > 0) {
+            this.compensationData.availableProjects.forEach(p => {
+                this.projectsMap[p.id] = {
+                    nome: p.name,
+                    tipo: p.type
+                };
+            });
+        }
+        
+        // Também buscar da API para garantir
+        try {
+            const response = await this.apiCall('/api/projeto', { method: 'GET' });
+            if (response.ok) {
+                const projetos = await response.json();
+                projetos.forEach(p => {
+                    const id = p.id || p._id;
+                    this.projectsMap[id] = {
+                        nome: p.nome,
+                        tipo: p.tipo
+                    };
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao construir mapa de projetos:', error);
+        }
+    }
+
+    async loadProjectsFromAPI() {
+        try {
+            const response = await this.apiCall('/api/projeto', { method: 'GET' });
+            
+            if (response.ok) {
+                const projetos = await response.json();
+                console.log('Projetos de compensação carregados da API:', projetos);
+                
+                // Mapear projetos da API para o formato usado no frontend
+                this.compensationData.availableProjects = projetos.map(p => ({
+                    id: p.id || p._id,
+                    name: p.nome || p.name,
+                    type: p.tipo,
+                    description: p.descricao,
+                    costPerToken: p.preco ? p.preco / 100 : 0,
+                    availableTokens: p.saldoToken || 0,
+                    impact: this.getProjectImpact(p.tipo),
+                    verified: p.status === 'verificado',
+                    location: p.local || ''
+                }));
+            }
+        } catch (error) {
+            console.error('Erro ao carregar projetos:', error);
+        }
+    }
+
+    getProjectImpact(type) {
+        const impacts = {
+            'reflorestamento': '1000 kg CO₂ por token | 10 árvores plantadas',
+            'eolica': '1000 kg CO₂ por token | 250 kWh de energia limpa',
+            'eficiencia': '800 kg CO₂ por token | 15% de eficiência',
+            'solar': '1000 kg CO₂ por token | 500 kWh de energia solar'
+        };
+        return impacts[type] || '1000 kg CO₂ por token';
+    }
+
+    async apiCall(endpoint, options = {}) {
+        const url = `${this.apiBaseUrl}${endpoint}`;
+        const token = localStorage.getItem('bbts_token');
+        
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        };
+
+        if (token) {
+            defaultOptions.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const finalOptions = {
+            ...defaultOptions,
+            ...options,
+            headers: {
+                ...defaultOptions.headers,
+                ...(options.headers || {})
+            }
+        };
+
+        return fetch(url, finalOptions);
     }
 
     generateCompensationHTML() {
@@ -230,34 +362,39 @@ class CompensationManager {
                         <form id="compensation-form">
                             <div class="form-group">
                                 <label class="form-label">Projeto de Compensação</label>
-                                <select class="form-control" id="compensation-project" required>
+                                <select class="form-control" id="compensation-project" required onchange="compensationManager.updateProjectInfo()">
                                     <option value="">Selecionar projeto...</option>
                                     ${this.compensationData.availableProjects.map(project => `
                                         <option value="${project.id}" data-cost="${project.costPerToken}" data-available="${project.availableTokens}">
-                                            ${project.name} - R$ ${project.costPerToken}/token
+                                            ${project.name} - ${project.availableTokens} tokens disponíveis
                                         </option>
                                     `).join('')}
                                 </select>
+                                <small class="form-text" id="project-tokens-info"></small>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Quantidade de Tokens</label>
-                                <input type="number" class="form-control" id="compensation-tokens" 
-                                       min="1" max="100" required 
-                                       onchange="compensationManager.calculateCompensation()">
-                                <small class="form-text" id="tokens-available">Tokens disponíveis no projeto: 0</small>
-                                <small class="form-text">Tokens disponíveis na sua carteira: ${window.tokenizationManager?.tokenData.balance || 0}</small>
+                                <label class="form-label">Emissão a Compensar</label>
+                                <select class="form-control" id="compensation-emission" required onchange="compensationManager.calculateTokensNeeded()">
+                                    <option value="">Selecionar emissão...</option>
+                                    ${this.userEmissions.map(emissao => `
+                                        <option value="${emissao.id || emissao._id}" data-co2="${emissao.quantidadeCo2}">
+                                            ${this.getEmissionLabel(emissao)}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                                <small class="form-text">1 token compensa até 1000 kg CO₂</small>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Emissões a Compensar</label>
-                                <input type="text" class="form-control" id="compensation-emissions" readonly>
-                                <small class="form-text">1 token = 1000 kg CO₂</small>
+                                <label class="form-label">CO₂ a Compensar</label>
+                                <input type="text" class="form-control" id="compensation-co2" readonly>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label">Custo Total</label>
-                                <input type="text" class="form-control" id="compensation-cost" readonly>
+                                <label class="form-label">Custo Total em Tokens</label>
+                                <input type="text" class="form-control" id="compensation-tokens-cost" readonly>
+                                <small class="form-text" id="user-balance-info"></small>
                             </div>
                             
                             <div class="form-group">
@@ -312,9 +449,9 @@ class CompensationManager {
                 <td>${compensation.project}</td>
                 <td>
                     <span class="badge ${
-                        compensation.type === 'reforestation' ? 'badge-success' :
+                        compensation.type === 'reflorestamento' || compensation.type === 'reforestation' ? 'badge-success' :
                         compensation.type === 'solar' ? 'badge-warning' : 
-                        compensation.type === 'wind' ? 'badge-info' : 'badge-secondary'
+                        compensation.type === 'eolica' || compensation.type === 'wind' ? 'badge-info' : 'badge-secondary'
                     }">
                         ${this.getProjectTypeName(compensation.type)}
                     </span>
@@ -333,7 +470,7 @@ class CompensationManager {
                     </span>
                 </td>
                 <td>
-                    <button class="btn btn-secondary btn-sm" onclick="compensationManager.viewDetails(${compensation.id})">
+                    <button class="btn btn-secondary btn-sm" onclick="compensationManager.viewDetails('${compensation.id}')">
                         <i class="fas fa-eye"></i>
                     </button>
                     <button class="btn btn-success btn-sm" onclick="compensationManager.downloadCertificate('${compensation.certificate}')">
@@ -345,6 +482,15 @@ class CompensationManager {
     }
 
     generateProjectsHTML() {
+        if (this.compensationData.availableProjects.length === 0) {
+            return `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 15px; color: #ccc;"></i>
+                    <p style="font-size: 1.1rem;">Nenhum projeto disponível no momento.</p>
+                </div>
+            `;
+        }
+
         return this.compensationData.availableProjects.map(project => `
             <div class="token-card">
                 <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
@@ -380,14 +526,10 @@ class CompensationManager {
                         <span><i class="fas fa-map-marker-alt"></i> Local:</span>
                         <span>${project.location}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                        <span><i class="fas fa-building"></i> Desenvolvedor:</span>
-                        <span style="font-size: 0.8rem; text-align: right;">${project.developer}</span>
-                    </div>
                 </div>
                 
                 <button class="btn btn-primary btn-block" 
-                        onclick="compensationManager.selectProjectForCompensation(${project.id})"
+                        onclick="compensationManager.selectProjectForCompensation('${project.id}')"
                         ${project.availableTokens === 0 ? 'disabled' : ''}>
                     <i class="fas fa-leaf"></i> Selecionar Projeto
                 </button>
@@ -398,6 +540,10 @@ class CompensationManager {
     getProjectTypeName(type) {
         const names = {
             solar: 'Energia Solar',
+            eolica: 'Energia Eólica',
+            reflorestamento: 'Reflorestamento',
+            eficiencia: 'Eficiência Energética',
+            // Compatibilidade com valores antigos
             wind: 'Energia Eólica',
             reforestation: 'Reflorestamento',
             efficiency: 'Eficiência Energética'
@@ -408,6 +554,10 @@ class CompensationManager {
     getProjectIcon(type) {
         const icons = {
             solar: 'sun',
+            eolica: 'wind',
+            reflorestamento: 'tree',
+            eficiencia: 'bolt',
+            // Compatibilidade com valores antigos
             wind: 'wind',
             reforestation: 'tree',
             efficiency: 'bolt'
@@ -425,13 +575,16 @@ class CompensationManager {
             });
         }
 
-        const tokensInput = document.getElementById('compensation-tokens');
         const projectSelect = document.getElementById('compensation-project');
+        const emissionSelect = document.getElementById('compensation-emission');
         const paymentSelect = document.getElementById('compensation-payment');
         
-        if (tokensInput && projectSelect) {
-            tokensInput.addEventListener('input', this.calculateCompensation.bind(this));
-            projectSelect.addEventListener('change', this.updateProjectDetails.bind(this));
+        if (projectSelect) {
+            projectSelect.addEventListener('change', this.updateProjectInfo.bind(this));
+        }
+
+        if (emissionSelect) {
+            emissionSelect.addEventListener('change', this.calculateTokensNeeded.bind(this));
         }
 
         if (paymentSelect) {
@@ -439,32 +592,56 @@ class CompensationManager {
         }
     }
 
-    calculateCompensation() {
-        const tokens = parseInt(document.getElementById('compensation-tokens').value) || 0;
-        const projectSelect = document.getElementById('compensation-project');
-        const selectedOption = projectSelect.options[projectSelect.selectedIndex];
+    calculateTokensNeeded() {
+        const emissionSelect = document.getElementById('compensation-emission');
+        const selectedOption = emissionSelect.options[emissionSelect.selectedIndex];
         
         if (selectedOption && selectedOption.value) {
-            const costPerToken = parseFloat(selectedOption.dataset.cost);
-            const emissions = tokens * 1000; // 1 token = 1000 kg CO₂
-            const totalCost = tokens * costPerToken;
+            const co2 = parseFloat(selectedOption.dataset.co2) || 0;
+            // 1 token = 1000 kg, arredonda para cima (fração = 1 token)
+            const tokensNeeded = Math.ceil(co2 / 1000);
             
-            document.getElementById('compensation-emissions').value = 
-                `-${this.formatNumber(emissions)} kg CO₂`;
-            document.getElementById('compensation-cost').value = 
-                `R$ ${this.formatCurrency(totalCost)}`;
+            document.getElementById('compensation-co2').value = `${this.formatNumber(co2)} kg CO₂`;
+            document.getElementById('compensation-tokens-cost').value = `${tokensNeeded} token${tokensNeeded > 1 ? 's' : ''}`;
+        } else {
+            document.getElementById('compensation-co2').value = '';
+            document.getElementById('compensation-tokens-cost').value = '';
         }
+        
+        // Atualizar info do saldo do usuário
+        this.updateUserBalanceInfo();
     }
 
-    updateProjectDetails() {
+    updateProjectInfo() {
         const projectSelect = document.getElementById('compensation-project');
         const selectedOption = projectSelect.options[projectSelect.selectedIndex];
         
         if (selectedOption && selectedOption.value) {
-            const available = parseInt(selectedOption.dataset.available);
-            document.getElementById('tokens-available').textContent = 
+            const available = parseInt(selectedOption.dataset.available) || 0;
+            document.getElementById('project-tokens-info').textContent = 
                 `Tokens disponíveis no projeto: ${available}`;
-            this.calculateCompensation();
+        }
+        
+        // Atualizar info do saldo do usuário
+        this.updateUserBalanceInfo();
+    }
+
+    async updateUserBalanceInfo() {
+        const userId = this.getCurrentUserId();
+        if (!userId) return;
+        
+        try {
+            const response = await this.apiCall(`/api/usuario/${userId}`, { method: 'GET' });
+            if (response.ok) {
+                const user = await response.json();
+                const saldoCompra = user.saldoCompra || 0;
+                const infoElement = document.getElementById('user-balance-info');
+                if (infoElement) {
+                    infoElement.textContent = `Seu saldo de tokens: ${saldoCompra}`;
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao buscar saldo do usuário:', error);
         }
     }
 
@@ -498,12 +675,17 @@ class CompensationManager {
 
     showCompensationModal() {
         document.getElementById('compensation-modal').classList.add('active');
+        // Atualizar info do saldo do usuário
+        this.updateUserBalanceInfo();
     }
 
     hideCompensationModal() {
         document.getElementById('compensation-modal').classList.remove('active');
         document.getElementById('compensation-form').reset();
         document.getElementById('payment-details').style.display = 'none';
+        document.getElementById('compensation-co2').value = '';
+        document.getElementById('compensation-tokens-cost').value = '';
+        document.getElementById('project-tokens-info').textContent = '';
     }
 
     selectProjectForCompensation(projectId) {
@@ -511,8 +693,7 @@ class CompensationManager {
         // Set the project in the select
         setTimeout(() => {
             document.getElementById('compensation-project').value = projectId;
-            this.updateProjectDetails();
-            this.calculateCompensation();
+            this.updateProjectInfo();
         }, 100);
     }
 
@@ -523,71 +704,148 @@ class CompensationManager {
             return;
         }
 
-        const projectId = parseInt(document.getElementById('compensation-project').value);
-        const tokens = parseInt(document.getElementById('compensation-tokens').value);
-        const paymentMethod = document.getElementById('compensation-payment').value;
+        const projectSelect = document.getElementById('compensation-project');
+        const emissionSelect = document.getElementById('compensation-emission');
         
-        const project = this.compensationData.availableProjects.find(p => p.id === projectId);
-        const availableTokens = window.tokenizationManager?.tokenData.balance || 0;
+        const projectId = projectSelect.value;
+        const emissionId = emissionSelect.value;
+        const paymentMethod = document.getElementById('compensation-payment').value;
+        const userId = this.getCurrentUserId();
 
-        if (paymentMethod === 'tokens' && tokens > availableTokens) {
-            window.app.showNotification('Tokens insuficientes para compensação.', 'error');
+        console.log('Valores obtidos:', { projectId, emissionId, paymentMethod, userId });
+
+        if (!projectId) {
+            window.app.showNotification('Selecione um projeto.', 'error');
             return;
         }
 
-        if (tokens > project.availableTokens) {
-            window.app.showNotification('Quantidade de tokens indisponível no projeto.', 'error');
+        if (!emissionId) {
+            window.app.showNotification('Selecione uma emissão para compensar.', 'error');
+            return;
+        }
+
+        if (!paymentMethod) {
+            window.app.showNotification('Selecione um método de pagamento.', 'error');
+            return;
+        }
+
+        // Calcular tokens necessários
+        const selectedEmission = emissionSelect.options[emissionSelect.selectedIndex];
+        const co2 = parseFloat(selectedEmission.dataset.co2) || 0;
+        const tokensNeeded = Math.ceil(co2 / 1000);
+        
+        const project = this.compensationData.availableProjects.find(p => String(p.id) === String(projectId));
+        if (!project) {
+            window.app.showNotification('Projeto não encontrado.', 'error');
             return;
         }
 
         try {
             window.app.showNotification('Processando compensação...', 'info');
 
-            // Create compensation record
+            // Buscar dados atuais do usuário
+            const userResponse = await this.apiCall(`/api/usuario/${userId}`, { method: 'GET' });
+            if (!userResponse.ok) {
+                throw new Error('Erro ao buscar dados do usuário');
+            }
+            const currentUser = await userResponse.json();
+            const currentSaldoCompra = currentUser.saldoCompra || 0;
+
+            // Verificar se tem tokens suficientes se estiver usando tokens existentes
+            if (paymentMethod === 'tokens' && tokensNeeded > currentSaldoCompra) {
+                window.app.showNotification(`Tokens insuficientes. Você tem ${currentSaldoCompra} tokens e precisa de ${tokensNeeded}.`, 'error');
+                return;
+            }
+
+            // Buscar dados atuais do projeto
+            const projectResponse = await this.apiCall(`/api/projeto/${projectId}`, { method: 'GET' });
+            if (!projectResponse.ok) {
+                throw new Error('Erro ao buscar dados do projeto');
+            }
+            const currentProject = await projectResponse.json();
+            console.log('Projeto retornado pela API:', currentProject);
+
+            // Criar transação de compensação na API
+            // Usar o ID diretamente do select (que veio do projeto carregado)
+            const transacaoBody = {};
+            transacaoBody.idProjetoFK = projectId;
+            transacaoBody.idUsuarioFK = userId;
+            transacaoBody.idEmissaoFK = emissionId;
+            transacaoBody.quantidadeutilizada = co2;
+            transacaoBody.datacompensacao = new Date().toISOString();
+            transacaoBody.tipotransacao = "compensacao";
+
+            console.log('=== DEBUG TRANSAÇÃO ===');
+            console.log('projectId:', projectId, 'tipo:', typeof projectId);
+            console.log('userId:', userId, 'tipo:', typeof userId);
+            console.log('emissionId:', emissionId, 'tipo:', typeof emissionId);
+            console.log('transacaoBody:', transacaoBody);
+            console.log('JSON a enviar:', JSON.stringify(transacaoBody));
+            console.log('======================');
+
+            const transacaoResponse = await fetch(`${this.apiBaseUrl}/api/transacao`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('bbts_token')}`
+                },
+                body: JSON.stringify(transacaoBody)
+            });
+
+            if (!transacaoResponse.ok) {
+                const errorData = await transacaoResponse.json().catch(() => ({}));
+                console.error('Erro ao criar transação:', errorData);
+                throw new Error('Erro ao registrar transação de compensação');
+            }
+
+            // Se estiver usando tokens existentes, subtrair do saldoCompra do usuário
+            if (paymentMethod === 'tokens') {
+                const novoSaldoCompra = currentSaldoCompra - tokensNeeded;
+                await this.apiCall(`/api/usuario/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ saldoCompra: novoSaldoCompra })
+                });
+            }
+
+            // Adicionar tokens ao saldoToken do projeto
+            const novoSaldoTokenProjeto = (currentProject.saldoToken || 0) + tokensNeeded;
+            await this.apiCall(`/api/projeto/${projectId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ saldoToken: novoSaldoTokenProjeto })
+            });
+
+            // Criar registro local de compensação para histórico
             const newCompensation = {
                 id: Date.now(),
                 date: new Date().toISOString().split('T')[0],
                 project: project.name,
                 type: project.type,
-                tokens: tokens,
-                emissions: tokens * 1000,
+                tokens: tokensNeeded,
+                emissions: co2,
                 status: 'completed',
                 certificate: `CER-${new Date().getFullYear()}-${String(this.compensationData.history.length + 1).padStart(3, '0')}`,
-                cost: tokens * project.costPerToken,
-                impact: this.generateImpactDescription(project.type, tokens)
+                cost: tokensNeeded * project.costPerToken,
+                impact: this.generateImpactDescription(project.type, tokensNeeded)
             };
 
             this.compensationData.history.unshift(newCompensation);
-            
-            // Update token balance if using existing tokens
-            if (paymentMethod === 'tokens' && window.tokenizationManager) {
-                window.tokenizationManager.tokenData.balance -= tokens;
-                
-                // Add to token history
-                window.tokenizationManager.tokenData.history.unshift({
-                    date: new Date().toISOString().split('T')[0],
-                    type: 'transfer',
-                    amount: -tokens,
-                    description: `Compensação - ${project.name}`,
-                    status: 'completed',
-                    hash: '0x' + Math.random().toString(16).substr(2, 16)
-                });
-            }
-
-            // Update project availability
-            project.availableTokens -= tokens;
 
             this.hideCompensationModal();
-            window.app.showNotification(`Compensação de ${tokens * 1000} kg CO₂ realizada com sucesso!`, 'success');
-            this.loadCompensationPage();
+            window.app.showNotification(`Compensação de ${this.formatNumber(co2)} kg CO₂ realizada com sucesso!`, 'success');
+            await this.loadCompensationPage();
         } catch (error) {
-            window.app.showNotification('Erro ao processar compensação.', 'error');
+            console.error('Erro ao processar compensação:', error);
+            window.app.showNotification('Erro ao processar compensação: ' + error.message, 'error');
         }
     }
 
     generateImpactDescription(type, tokens) {
         const impacts = {
             solar: `${tokens * 500} kWh de energia solar gerada`,
+            eolica: `${tokens * 250} kWh de energia eólica gerada`,
+            reflorestamento: `${tokens * 10} árvores plantadas`,
+            eficiencia: `Eficiência energética em ${tokens * 2} empresas`,
+            // Compatibilidade com valores antigos
             wind: `${tokens * 250} kWh de energia eólica gerada`,
             reforestation: `${tokens * 10} árvores plantadas`,
             efficiency: `Eficiência energética em ${tokens * 2} empresas`
