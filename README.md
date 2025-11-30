@@ -13,7 +13,7 @@
 
 ## 📋 Sobre o Projeto
 
-O **BBTS** (Blockchain-Based Tracking System) é uma plataforma web completa desenvolvida para auxiliar **Empresas** no gerenciamento e rastreamento de suas emissões de carbono. A solução permite que as organizações monitorem detalhadamente sua pegada de carbono, tokenizem créditos de carbono e realizem a compensação ambiental através de projetos sustentáveis, tudo com a **transparência e imutabilidade da tecnologia blockchain**.
+O projeto consiste em uma plataforma web completa desenvolvida para auxiliar **Empresas** no gerenciamento e rastreamento de suas emissões de carbono. A solução permite que as organizações monitorem detalhadamente sua pegada de carbono, tokenizem créditos de carbono e realizem a compensação ambiental através de projetos sustentáveis, tudo com a **transparência e imutabilidade da tecnologia blockchain**.
 
 ### 🎯 Objetivos
 
