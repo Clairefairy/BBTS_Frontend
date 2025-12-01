@@ -355,11 +355,13 @@ class BBTSCarbonApp {
         // Obter valores diretamente dos elementos
         const nameInput = document.getElementById('register-name');
         const emailInput = document.getElementById('register-email');
+        const perfilInput = document.getElementById('register-perfil');
         const passwordInput = document.getElementById('register-password');
         const confirmPasswordInput = document.getElementById('register-confirm-password');
         
         const name = nameInput ? nameInput.value : '';
         const email = emailInput ? emailInput.value : '';
+        const perfil = perfilInput ? perfilInput.value : '';
         const password = passwordInput ? passwordInput.value : '';
         const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
 
@@ -371,6 +373,11 @@ class BBTSCarbonApp {
 
         if (!email || !email.trim()) {
             this.showNotification('Por favor, preencha o e-mail.', 'error');
+            return;
+        }
+
+        if (!perfil) {
+            this.showNotification('Por favor, selecione um perfil.', 'error');
             return;
         }
 
@@ -405,6 +412,7 @@ class BBTSCarbonApp {
             const requestBody = {
                 nome: name.trim(),
                 email: email.trim(),
+                perfil: perfil,
                 senha: password
             };
 
@@ -540,7 +548,6 @@ class BBTSCarbonApp {
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Informações da Conta</h3>
-                    ${loadedFromApi ? '<span style="color: var(--bb-green); font-size: 0.8rem;"><i class="fas fa-check"></i> Dados da API</span>' : ''}
                     </div>
                     <form id="profile-form">
                         <div class="form-group">
