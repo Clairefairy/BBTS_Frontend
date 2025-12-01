@@ -1,15 +1,11 @@
 # 🌱 BBTS - Sistema de Créditos de Carbono
+![BBTS Logo](https://img.shields.io/badge/BBTS-Cr%C3%A9ditos%20de%20Carbono-00875F?style=for-the-badge&logo=leaf&logoColor=white)![Blockchain](https://img.shields.io/badge/Blockchain-Ethereum-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)
 
-<div align="center">
+**Plataforma de gestão de emissões de carbono, focada em Empresas, que utiliza a Blockchain Ethereum para garantir a rastreabilidade e a tokenização de créditos.**
 
-![BBTS Logo](https://img.shields.io/badge/BBTS-Créditos%20de%20Carbono-00875F?style=for-the-badge&logo=leaf&logoColor=white)
+[![Deploy Status](https://img.shields.io/badge/deploy-online-success?style=flat-square&logo=netlify)](https://bbtscompensacao.netlify.app/)[![Backend API](https://img.shields.io/badge/API-Render-000000?style=flat-square&logo=render)](https://back-end-blockchain.onrender.com/)[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
-**Plataforma de gestão de emissões de carbono com tokenização em blockchain**
-
-[![Deploy Status](https://img.shields.io/badge/deploy-online-success?style=flat-square&logo=netlify)](https://bbtscompensacao.netlify.app/)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
-
-[🌐 Acessar Aplicação](https://bbtscompensacao.netlify.app/)
+[🌐 Acessar Aplicação](https://bbtscompensacao.netlify.app/) \| [🔗 Documentação da API (Swagger)](https://back-end-blockchain.onrender.com/api-docs/)
 
 </div>
 
@@ -17,217 +13,161 @@
 
 ## 📋 Sobre o Projeto
 
-O **BBTS** é uma plataforma web desenvolvida para gerenciar e rastrear emissões de carbono, permitindo que empresas monitorem suas emissões, tokenizem créditos de carbono e compensem sua pegada ambiental através de projetos sustentáveis.
+O projeto consiste em uma plataforma web completa desenvolvida para auxiliar **Empresas** no gerenciamento e rastreamento de suas emissões de carbono. A solução permite que as organizações monitorem detalhadamente sua pegada de carbono, tokenizem créditos de carbono e realizem a compensação ambiental através de projetos sustentáveis, tudo com a **transparência e imutabilidade da tecnologia blockchain**.
 
 ### 🎯 Objetivos
 
-- Monitorar emissões de energia e frota de veículos
-- Tokenizar créditos de carbono usando tecnologia blockchain
-- Facilitar a compensação de emissões através de projetos ambientais
-- Fornecer dashboards e relatórios para tomada de decisão
+- **Monitoramento Preciso:** Rastrear emissões de fontes primárias como consumo de energia e frota de veículos.
+
+- **Tokenização em Ethereum:** Converter reduções de emissão em ativos digitais (tokens) na rede **Ethereum**, garantindo sua autenticidade e rastreabilidade.
+
+- **Compensação Eficaz:** Facilitar a compensação de emissões através de um catálogo de projetos ambientais verificados.
+
+- **Transparência:** Fornecer dashboards e relatórios detalhados para auditoria e tomada de decisão.
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Funcionalidades Principais
 
-### 📊 Dashboard
-- Visão geral das emissões de energia e frota
-- Gráfico de tendência de emissões (últimos 6 meses)
-- Exibição de créditos tokenizados disponíveis
-- Histórico de atividades recentes (emissões, tokenizações, compensações)
+A plataforma é estruturada em módulos que cobrem todo o ciclo de vida da gestão de carbono:
 
-### 📈 Monitoramento de Emissões
-- **Emissões de Energia**: Registro de consumo de energia (kWh) com cálculo automático de CO₂
-  - Fontes: Rede Elétrica, Energia Solar, Energia Eólica, Hidrelétrica
-  - Fatores de conversão específicos por fonte
-- **Emissões de Frota**: Registro de consumo de combustível com cálculo automático de CO₂
-  - Combustíveis: Diesel, Gasolina, Etanol, GNV
-  - Fatores de emissão específicos por combustível
-- Histórico completo de emissões por categoria
-- Métodos de coleta: Manual, API, Dispositivo IoT
-
-### 🪙 Tokenização
-- **Mercado de Créditos**: Visualização de projetos disponíveis
-- **Emissão de Tokens**: Conversão de reduções de emissão em tokens (1000 kg CO₂ = 1 token)
-- **Compra de Tokens**: Aquisição de tokens de projetos verificados
-- **Saldo de Tokens**: Exibição do saldo e valor estimado
-- Cadastro de novos projetos (solar, eólica, reflorestamento, eficiência)
-
-### 🌿 Compensação
-- Catálogo de projetos de compensação
-- Seleção de emissões específicas para compensar
-- Cálculo automático de tokens necessários
-- Tipos de projetos com impactos específicos:
-  - Reflorestamento: 10 árvores plantadas por token
-  - Energia Eólica: 250 kWh de energia limpa por token
-  - Energia Solar: 500 kWh de energia solar por token
-  - Eficiência Energética: 15% de eficiência por token
-- Histórico completo de compensações
-
-### 👤 Perfil do Usuário
-- Visualização e edição de dados pessoais
-- Alteração de senha com validação
-- Integração com autenticação JWT
+| Módulo | Descrição | Destaques |
+| --- | --- | --- |
+| **Dashboard** | Visão geral e indicadores chave de performance (KPIs). | Emissões totais, créditos tokenizados disponíveis, emissões compensadas. |
+| **Monitoramento** | Registro e cálculo de emissões de CO₂. | Emissões de Energia (Rede, Solar, Eólica) e Emissões de Frota (Diesel, Gasolina, Etanol). |
+| **Tokenização** | Gerenciamento de créditos de carbono como tokens. | Emissão de tokens (1 token = 1.000 kg CO₂), compra/venda e saldo de tokens. **Usa a Blockchain Ethereum.** |
+| **Compensação** | Seleção e execução de projetos de compensação. | Catálogo de projetos (Reflorestamento, Energia Limpa) e cálculo automático de tokens necessários. |
+| **Registro Blockchain** | Visualização das transações registradas na rede. | Rastreabilidade e imutabilidade de todas as transações de tokenização e compensação. |
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-### Frontend
-- **HTML5** - Estrutura da aplicação
-- **CSS3** - Estilização com variáveis CSS e design responsivo
-- **JavaScript (ES6+)** - Lógica da aplicação com classes e async/await
-- **Font Awesome** - Ícones
+O projeto é uma aplicação *full-stack* dividida em Frontend e Backend:
 
-### Backend (API)
-- **Node.js** - Runtime
-- **Express** - Framework web
-- **MongoDB** - Banco de dados
-- **JWT** - Autenticação
+### Frontend (Interface do Usuário)
+
+| Tecnologia | Função |
+| --- | --- |
+| **HTML5, CSS3** | Estrutura e Estilização (Design Responsivo) |
+| **JavaScript (ES6+)** | Lógica da Aplicação (SPA - Single Page Application) |
+| **MetaMask** | Conexão com a carteira Ethereum para Tokenização |
+| **Font Awesome** | Biblioteca de Ícones |
+
+### Backend (API RESTful)
+
+| Tecnologia | Função |
+| --- | --- |
+| **Node.js** | Ambiente de Execução |
+| **Express** | Framework Web para Roteamento |
+| **MongoDB (Mongoose)** | Banco de Dados NoSQL |
+| **JWT** | Autenticação e Autorização de Usuários |
+| **Ethereum** | Blockchain para registro de transações e tokenização |
 
 ### Deploy
-- **Frontend**: [Netlify](https://netlify.com)
-- **Backend**: [Render](https://render.com)
 
----
+- **Frontend:** [Netlify](https://bbtscompensacao.netlify.app/)
 
-## 📁 Estrutura do Projeto
-
-```
-BBTS/
-├── css/
-│   ├── style.css          # Estilos principais
-│   └── responsive.css     # Media queries para responsividade
-├── js/
-│   ├── app.js             # Controlador principal da aplicação
-│   ├── auth.js            # Lógica de autenticação
-│   ├── blockchain.js      # Integração com blockchain
-│   ├── compensation.js    # Módulo de compensação
-│   ├── dashboard.js       # Módulo do dashboard
-│   ├── init.js            # Inicialização da aplicação
-│   ├── monitoring.js      # Módulo de monitoramento
-│   ├── notifications.js   # Sistema de notificações
-│   └── tokenization.js    # Módulo de tokenização
-├── Imagens/               # Assets de imagem
-├── index.html             # Página principal (SPA)
-└── README.md              # Documentação
-```
+- **Backend:** [Render](https://back-end-blockchain.onrender.com/)
 
 ---
 
 ## 🔌 API Endpoints
 
-A aplicação se conecta à API em `https://back-end-blockchain.onrender.com/`
+A aplicação se comunica com a API RESTful hospedada em `https://back-end-blockchain.onrender.com/`.
 
-| Endpoint | Método | Descrição |
-|----------|--------|-----------|
-| `/api/usuario` | GET/POST/PUT | Gerenciamento de usuários |
-| `/api/emissao` | GET/POST | Registro de emissões |
-| `/api/fonteEmissao` | GET | Fontes de emissão (energia/frota) |
-| `/api/projeto` | GET/POST/PUT | Projetos de compensação |
-| `/api/transacao` | GET/POST | Transações (compra/venda/compensação) |
+A documentação completa e interativa da API está disponível no **Swagger**: [🔗 back-end-blockchain.onrender.com/api-docs/](https://back-end-blockchain.onrender.com/api-docs/)
+
+| Módulo | Endpoints Principais | Descrição |
+| --- | --- | --- |
+| **Usuários** | `/api/usuario`, `/api/usuario/login` | Criação, Login e Gerenciamento de perfis. |
+| **Emissões** | `/api/emissao`, `/api/consumoEnergia`, `/api/frotaVeiculo` | Registro e consulta de todas as fontes de emissão. |
+| **Créditos** | `/api/creditoCarbono` | Gerenciamento e tokenização de créditos. |
+| **Compensação** | `/api/transacaoCompensacao`, `/api/projeto` | Registro de transações de compensação e projetos disponíveis. |
 
 ---
 
 ## 🚀 Como Executar Localmente
 
+Este repositório contém o código do **Frontend** (SPA).
+
 ### Pré-requisitos
-- Navegador web moderno (Chrome, Firefox, Edge)
-- Servidor HTTP local (opcional)
 
-### Execução
+- Navegador web moderno (Chrome, Firefox, Edge).
 
-1. **Clone o repositório**
-```bash
-git clone https://github.com/seu-usuario/BBTS.git
-cd BBTS
-```
+- Um servidor HTTP local (opcional, mas recomendado para evitar problemas de CORS).
 
-2. **Abra diretamente no navegador**
-```bash
-# Basta abrir o arquivo index.html no navegador
-```
+### Execução do Frontend
 
-Ou use um servidor local:
-```bash
-# Com Python
-python -m http.server 8080
+1. **Clone o repositório:**
 
-# Com Node.js (npx)
-npx serve
-```
+   ```bash
+   git clone https://github.com/seu-usuario/BBTS_Frontend.git # Use o link correto do seu repositório
+   cd BBTS_Frontend
+   ```
 
-3. **Acesse a aplicação**
-```
-http://localhost:8080
-```
+1. **Abra diretamente no navegador**
 
----
+   ```bash
+   # Basta abrir o arquivo index.html no navegador
+   ```
 
-## 📱 Responsividade
+   *Ou utilize um servidor local simples:*
 
-A aplicação é totalmente responsiva e se adapta a diferentes tamanhos de tela:
-- 📱 Mobile (até 768px)
-- 💻 Tablet (768px - 1024px)
-- 🖥️ Desktop (acima de 1024px)
+   ```bash
+   # Exemplo com Python (se instalado )
+   python3 -m http.server 8080
+   
+   # Exemplo com Node.js (se instalado )
+   npx serve
+   ```
 
----
+1. **Acesse a aplicação**
 
-## 🔐 Autenticação
+   ```
+   http://localhost:8080
+   ```
 
-O sistema utiliza autenticação JWT (JSON Web Token):
-- Tokens armazenados no `localStorage`
-- Verificação de expiração automática
-- Logout automático em caso de token inválido
+### Execução do Backend
 
----
+O código do Backend está disponível em um repositório separado: [brandaowalison/back-end-blockchain](https://github.com/brandaowalison/back-end-blockchain).
 
-## 🎨 Tema e Cores
+Para rodar o backend localmente, siga as instruções no README.md do repositório:
 
-O design utiliza a paleta de cores do Banco do Brasil com foco em sustentabilidade:
+1. Clone o repositório do backend.
 
-| Cor | Código | Uso |
-|-----|--------|-----|
-| Azul BB | `#004B8D` | Cor primária |
-| Azul Escuro | `#003366` | Destaques |
-| Verde | `#00875F` | Indicadores positivos |
-| Amarelo | `#FCFC30` | Alertas e CTAs |
+1. Instale as dependências (`npm install`).
+
+1. Configure o arquivo `.env` (PORT, MONGODB_URI, JWT_SECRET).
+
+1. Execute a aplicação (`npm run dev` ou `node server.js`).
 
 ---
 
 ## 📊 Conversões e Cálculos
 
-### Fatores de Emissão (Energia)
-| Fonte | Fator (kg CO₂/kWh) |
-|-------|-------------------|
-| Rede Elétrica | 0.50 |
-| Energia Solar | 0.05 |
-| Energia Eólica | 0.01 |
-| Hidrelétrica | 0.02 |
+A plataforma utiliza fatores de emissão e conversão padronizados para calcular a pegada de carbono e a tokenização:
 
-### Fatores de Emissão (Combustíveis)
-| Combustível | Fator (kg CO₂/litro) |
-|-------------|---------------------|
-| Diesel | 2.68 |
-| Gasolina | 2.31 |
-| Etanol | 1.51 |
-| GNV | 2.75 |
+### Fatores de Emissão (Exemplos)
+
+| Fonte | Fator (kg CO₂/unidade) |
+| --- | --- |
+| Rede Elétrica | 0.50 kg CO₂/kWh |
+| Diesel | 2.68 kg CO₂/litro |
 
 ### Tokenização
+
 - **1 Token** = 1.000 kg de CO₂ reduzido/compensado
-- **Valor estimado**: R$ 45,50 por token
+
+- **Valor estimado:** R$ 45,50 por token
 
 ---
 
-## 👥 Equipe
+## 👥 Equipe e Licença
 
-Projeto desenvolvido como parte da Residência de Software do **SENAC** em parceria com o **Banco do Brasil**.
+Projeto desenvolvido como parte da Residência de Software do **SENAC** em parceria com o **Banco do Brasil Tecnologia e Serviços**.
 
----
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
