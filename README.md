@@ -1,7 +1,7 @@
 # 🌱 BBTS - Sistema de Créditos de Carbono
-![BBTS Logo](https://img.shields.io/badge/BBTS-Cr%C3%A9ditos%20de%20Carbono-00875F?style=for-the-badge&logo=leaf&logoColor=white)![Blockchain](https://img.shields.io/badge/Blockchain-Ethereum-627EEA?style=for-the-badge&logo=ethereum&logoColor=white)
+![BBTS Logo](https://img.shields.io/badge/BBTS-Cr%C3%A9ditos%20de%20Carbono-00875F?style=for-the-badge&logo=leaf&logoColor=white)
 
-**Plataforma de gestão de emissões de carbono, focada em Empresas, que utiliza a Blockchain Ethereum para garantir a rastreabilidade e a tokenização de créditos.**
+**Plataforma de gestão de emissões de carbono, focada em Empresas, que utiliza Blockchain para garantir a rastreabilidade e a tokenização de créditos.**
 
 [![Deploy Status](https://img.shields.io/badge/deploy-online-success?style=flat-square&logo=netlify)](https://bbtscompensacao.netlify.app/)[![Backend API](https://img.shields.io/badge/API-Render-000000?style=flat-square&logo=render)](https://back-end-blockchain.onrender.com/)[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
@@ -13,13 +13,13 @@
 
 ## 📋 Sobre o Projeto
 
-O projeto consiste em uma plataforma web completa desenvolvida para auxiliar **Empresas** no gerenciamento e rastreamento de suas emissões de carbono. A solução permite que as organizações monitorem detalhadamente sua pegada de carbono, tokenizem créditos de carbono e realizem a compensação ambiental através de projetos sustentáveis, tudo com a **transparência e imutabilidade da tecnologia blockchain**.
+O projeto consiste numa plataforma web completa desenvolvida para auxiliar **Empresas** no gerenciamento e rastreamento de suas emissões de carbono. A solução permite que as organizações monitorem detalhadamente sua pegada de carbono, tokenizem créditos de carbono e realizem a compensação ambiental através de projetos sustentáveis, tudo com a **transparência e imutabilidade da tecnologia blockchain**.
 
 ### 🎯 Objetivos
 
 - **Monitoramento Preciso:** Rastrear emissões de fontes primárias como consumo de energia e frota de veículos.
 
-- **Tokenização em Ethereum:** Converter reduções de emissão em ativos digitais (tokens) na rede **Ethereum**, garantindo sua autenticidade e rastreabilidade.
+- **Tokenização em Blockchain:** Converter reduções de emissão em ativos digitais (tokens) na **Blockchain**, garantindo sua autenticidade e rastreabilidade.
 
 - **Compensação Eficaz:** Facilitar a compensação de emissões através de um catálogo de projetos ambientais verificados.
 
@@ -35,7 +35,7 @@ A plataforma é estruturada em módulos que cobrem todo o ciclo de vida da gest�
 | --- | --- | --- |
 | **Dashboard** | Visão geral e indicadores chave de performance (KPIs). | Emissões totais, créditos tokenizados disponíveis, emissões compensadas. |
 | **Monitoramento** | Registro e cálculo de emissões de CO₂. | Emissões de Energia (Rede, Solar, Eólica) e Emissões de Frota (Diesel, Gasolina, Etanol). |
-| **Tokenização** | Gerenciamento de créditos de carbono como tokens. | Emissão de tokens (1 token = 1.000 kg CO₂), compra/venda e saldo de tokens. **Usa a Blockchain Ethereum.** |
+| **Tokenização** | Gerenciamento de créditos de carbono como tokens. | Emissão de tokens (1 token = 1.000 kg CO₂), compra/venda e saldo de tokens. **Usa a Blockchain.** |
 | **Compensação** | Seleção e execução de projetos de compensação. | Catálogo de projetos (Reflorestamento, Energia Limpa) e cálculo automático de tokens necessários. |
 | **Registro Blockchain** | Visualização das transações registradas na rede. | Rastreabilidade e imutabilidade de todas as transações de tokenização e compensação. |
 
